@@ -21,7 +21,7 @@ env:
 jobs:
   build:
     name: Build Docker image
-    runs-on: linux-self-hosted
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
       image: ${{ steps.meta.outputs.image }}
@@ -69,7 +69,7 @@ jobs:
 
   publish:
     name: Publish Docker image
-    runs-on: linux-self-hosted
+    runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Download image archive
