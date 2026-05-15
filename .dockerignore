@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.venv
+__pycache__
+*.py[cod]
+.pytest_cache
+tests
+docker-compose*.yml
+Pipfile
