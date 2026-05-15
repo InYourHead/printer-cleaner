@@ -1,0 +1,14 @@
+services:
+  printer-cleaner:
+    build: .
+    environment:
+      PRINTER_MODEL: epson_l3250
+      PRINTER_IP: 192.168.1.50
+      PRINTER_PORT: "9100"
+      ACTION: head-clean
+      CLEAN_TARGET: all
+      CRON_SCHEDULE: "0 9 * * 1"
+      RUN_ON_START: "false"
+      DRY_RUN: "true"
+      LAN_ONLY: "true"
+    restart: unless-stopped
