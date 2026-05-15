@@ -113,6 +113,21 @@ Build the image:
 docker build -t printer-cleaner .
 ```
 
+## Publishing
+
+Docker image publishing is handled by
+[`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml).
+The workflow reads the image version from [`VERSION`](VERSION), builds the image
+in the first job, and publishes it to GitHub Container Registry in the second
+job.
+
+Published tags:
+
+- `ghcr.io/<owner>/<repo>:<VERSION>`
+- `ghcr.io/<owner>/<repo>:latest`
+
+Update `VERSION` before publishing a new release.
+
 Run once in dry-run mode:
 
 ```bash

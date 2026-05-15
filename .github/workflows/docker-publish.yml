@@ -1,0 +1,98 @@
+name: Docker Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+      - VERSION
+      - printer_cleaner/**
+      - .github/workflows/docker-publish.yml
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    name: Build Docker image
+    runs-on: linux-self-hosted
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read image metadata
+        id: meta
+        shell: bash
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){2}([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid VERSION: $version" >&2
+            exit 1
+          fi
+
+          owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          repo="${GITHUB_REPOSITORY#*/}"
+          repo="$(echo "$repo" | tr '[:upper:]' '[:lower:]')"
+          image="${REGISTRY}/${owner}/${repo}"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Build image archive
+        shell: bash
+        run: |
+          docker build \
+            --tag "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}" \
+            --tag "${{ steps.meta.outputs.image }}:latest" \
+            .
+          docker save \
+            --output /tmp/printer-cleaner-image.tar \
+            "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}" \
+            "${{ steps.meta.outputs.image }}:latest"
+
+      - name: Upload image archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: printer-cleaner-image
+          path: /tmp/printer-cleaner-image.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish Docker image
+    runs-on: linux-self-hosted
+    needs: build
+    steps:
+      - name: Download image archive
+        uses: actions/download-artifact@v4
+        with:
+          name: printer-cleaner-image
+          path: /tmp
+
+      - name: Load image archive
+        shell: bash
+        run: docker load --input /tmp/printer-cleaner-image.tar
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push version tag
+        shell: bash
+        run: docker push "${{ needs.build.outputs.image }}:${{ needs.build.outputs.version }}"
+
+      - name: Push latest tag
+        shell: bash
+        run: docker push "${{ needs.build.outputs.image }}:latest"
