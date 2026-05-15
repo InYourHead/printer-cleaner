@@ -4,8 +4,9 @@
 
 Printer model value: `epson_l3250`
 
-The Epson L3250 implementation sends the ESC/P2 Remote Mode `CH` command for
-print-head cleaning.
+The Epson L3250 implementation sends Epson's IEEE 1284.4 exit sequence, resets
+ESC/P2 state, then sends the Remote Mode `CH` command for print-head cleaning
+and ends the raw TCP job with form feed.
 
 This is a local-network approach. It does not use Epson cloud services and does
 not automate a desktop printer-driver UI. Compatibility depends on printer
@@ -16,3 +17,5 @@ Supported cleaning targets:
 | Target | Description |
 | --- | --- |
 | `all` | Clean all heads. |
+| `black` | Clean black head. |
+| `color` | Clean color heads. |

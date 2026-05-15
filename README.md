@@ -1,9 +1,9 @@
 # Printer Cleaner
 
 Printer Cleaner is a small LAN-only utility for running scheduled printer
-maintenance commands. The first supported printer model is `epson_l3250`, which sends
-an Epson ESC/P2 Remote Mode head-cleaning command over raw TCP/JetDirect,
-usually port `9100`.
+maintenance commands. The first supported printer model is `epson_l3250`, which
+sends Epson ESC/P2 maintenance commands over raw TCP/JetDirect, usually port
+`9100`.
 
 The tool is designed to run either as a short-lived one-shot process or as a
 long-running process with an internal cron schedule.
